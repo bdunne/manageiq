@@ -996,7 +996,7 @@ class MiqRequestWorkflow
     key_id = "#{key}_id".to_sym
     result[key_id] = get_value(@values[dialog_key])
     result[key_id] = nil if result[key_id] == 0
-    result[key] = ci_to_hash_struct(klass.find_by_id(result[key_id])) unless result[key_id].nil?
+    result[key] = ci_to_hash_struct(klass.where(:id => result[key_id]).first)
   end
 
   def ci_to_hash_struct(ci)
