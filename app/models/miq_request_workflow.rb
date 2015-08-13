@@ -1365,9 +1365,7 @@ class MiqRequestWorkflow
     pxe_server = get_pxe_server
     return [] if pxe_server.nil?
 
-    pxe_server.windows_images.collect do |p|
-      build_ci_hash_struct(p, [:name, :description])
-    end.compact
+    pxe_server.windows_images.collect(&:to_hash_struct).compact
   end
 
   def allowed_images(options = {})
