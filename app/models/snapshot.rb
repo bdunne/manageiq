@@ -172,4 +172,9 @@ class Snapshot < ActiveRecord::Base
     return uid[0,20] if !uid.nil? && uid.length == 27 && uid[-1,1] == 'Z'
     return uid
   end
+
+  def to_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :Snapshot)
+    [:id, :name, :current?].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
 end
