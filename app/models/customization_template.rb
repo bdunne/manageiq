@@ -62,4 +62,9 @@ class CustomizationTemplate < ActiveRecord::Base
     require 'erb'
     ERB.new(erb_text).result(binding)
   end
+
+  def to_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :CustomizationTemplate)
+    [:id, :name, :description, :updated_at].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
 end

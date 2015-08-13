@@ -1318,7 +1318,7 @@ class MiqRequestWorkflow
         # filter customizationtemplates
         if c.pxe_image_type.provision_type.blank? || c.pxe_image_type.provision_type == prov_typ
           @values[:customization_template_script] = c.script if c.id == customization_template_id
-          build_ci_hash_struct(c, [:name, :description, :updated_at])
+          c.to_hash_struct
         end
       end.compact
     end
