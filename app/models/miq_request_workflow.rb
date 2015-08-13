@@ -1005,10 +1005,6 @@ class MiqRequestWorkflow
     ci.try(:to_hash_struct) || default_ci_to_hash_struct(ci)
   end
 
-  def customization_spec_to_hash_struct(ci)
-    build_ci_hash_struct(ci, [:name, :typ, :description, :last_update_time, :is_sysprep_spec?])
-  end
-
   def load_ar_obj(ci)
     return load_ar_objs(ci) if ci.kind_of?(Array)
     return ci unless ci.kind_of?(MiqHashStruct)
