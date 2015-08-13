@@ -197,4 +197,9 @@ class EmsFolder < ActiveRecord::Base
     end
   end
   private_class_method :child_folder_paths_recursive
+
+  def to_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :EmsFolder)
+    [:id, :name, :is_datacenter?].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
 end
