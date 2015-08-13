@@ -1005,12 +1005,6 @@ class MiqRequestWorkflow
     ci.try(:to_hash_struct) || default_ci_to_hash_struct(ci)
   end
 
-  def vm_or_template_to_hash_struct(ci)
-    v = build_ci_hash_struct(ci, [:name, :platform])
-    v.snapshots = ci.snapshots.collect { |si| ci_to_hash_struct(si) }
-    v
-  end
-
   def ems_folder_to_hash_struct(ci)
     build_ci_hash_struct(ci, [:name, :is_datacenter?])
   end

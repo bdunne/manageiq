@@ -1877,6 +1877,12 @@ class VmOrTemplate < ActiveRecord::Base
     VmOrTemplate.where(:id => ids).all? { |v| v.public_send("validate_#{operation}")[:available] }
   end
 
+  def to_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :VmOrTemplate)
+    new_hs.snapshots = snapshots.collect(&:to_hash_struct)
+    [:id, :name, :platform].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
+
   private
 
   def power_state=(new_power_state)
