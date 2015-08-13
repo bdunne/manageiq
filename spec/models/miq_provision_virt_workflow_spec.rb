@@ -63,7 +63,7 @@ describe MiqProvisionVirtWorkflow do
       end
 
       it '#allowed_vlans' do
-        workflow.stub(:allowed_hosts).with(no_args).and_return([workflow.host_to_hash_struct(@host1)])
+        workflow.stub(:allowed_hosts).with(no_args).and_return([workflow.ci_to_hash_struct(@host1)])
         vlans = workflow.allowed_vlans(:vlans => true, :dvs => false)
         lan_keys = [@lan11.name, @lan13.name, @lan12.name]
         vlans.keys.should match_array(lan_keys)
@@ -84,7 +84,7 @@ describe MiqProvisionVirtWorkflow do
         workflow.instance_variable_set(:@values, :vm_tags => [], :src_vm_id => @src_vm.id,
                                       :host_id => @host1.id)
         workflow.instance_variable_set(:@target_resource,
-                                       :host    => workflow.host_to_hash_struct(@host1),
+                                       :host    => workflow.ci_to_hash_struct(@host1),
                                        :ems     => workflow.ci_to_hash_struct(@ems),
                                        :host_id => @host1.id)
         dvs = workflow.allowed_dvs({}, nil)
@@ -116,7 +116,7 @@ describe MiqProvisionVirtWorkflow do
           workflow.instance_variable_set(:@values, :vm_tags => [], :src_vm_id => @src_vm.id,
                                         :placement_auto => false)
           workflow.instance_variable_set(:@target_resource,
-                                         :host    => workflow.host_to_hash_struct(@host1),
+                                         :host    => workflow.ci_to_hash_struct(@host1),
                                          :ems     => workflow.ci_to_hash_struct(@ems),
                                          :host_id => @host1.id)
           dvs = workflow.allowed_dvs({}, nil)

@@ -1973,4 +1973,9 @@ class Host < ActiveRecord::Base
   def openstack_host?
     ext_management_system.class == ManageIQ::Providers::Openstack::InfraManager
   end
+
+  def to_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :Host)
+    [:id, :name, :vmm_product, :vmm_version, :state, :v_total_vms].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
 end
