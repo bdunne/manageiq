@@ -61,6 +61,11 @@ class PxeImage < ActiveRecord::Base
     pxe_server.delete_file(filepath)
   end
 
+  def to_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :PxeImage)
+    [:id, :name, :description].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
+
   private
 
   def update_pxe_content_option(options, key, value)

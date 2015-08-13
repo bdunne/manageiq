@@ -1357,7 +1357,7 @@ class MiqRequestWorkflow
     pxe_server.pxe_images.collect do |p|
       next if p.pxe_image_type.nil? || p.default_for_windows
       # filter pxe images by provision_type to show vm/any or host/any
-      build_ci_hash_struct(p, [:name, :description]) if p.pxe_image_type.provision_type.blank? || p.pxe_image_type.provision_type == prov_typ
+      p.to_hash_struct if p.pxe_image_type.provision_type.blank? || p.pxe_image_type.provision_type == prov_typ
     end.compact
   end
 
