@@ -833,4 +833,9 @@ class Storage < ActiveRecord::Base
   def vm_scan_affinity
     with_relationship_type("vm_scan_storage_affinity") { parents }
   end
+
+  def to_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :Storage)
+    [:id, :name, :free_space, :total_space, :storage_domain_type].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
 end

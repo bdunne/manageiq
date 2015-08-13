@@ -1005,10 +1005,6 @@ class MiqRequestWorkflow
     ci.try(:to_hash_struct) || default_ci_to_hash_struct(ci)
   end
 
-  def storage_to_hash_struct(ci)
-    build_ci_hash_struct(ci, [:name, :free_space, :total_space, :storage_domain_type])
-  end
-
   def snapshot_to_hash_struct(ci)
     build_ci_hash_struct(ci, [:name, :current?])
   end
