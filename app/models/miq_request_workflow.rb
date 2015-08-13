@@ -1381,12 +1381,7 @@ class MiqRequestWorkflow
   end
 
   def allowed_iso_images(_options = {})
-    result = get_iso_images.collect do |p|
-      build_ci_hash_struct(p, [:name])
-    end.compact
-    # Change the ID to contain the class name since this is a mix class type
-    result.each { |ci| ci.id = "#{ci.evm_object_class}::#{ci.id}" }
-    result
+    get_iso_images.collect(&:to_hash_struct).compact
   end
 
   def ws_requester_fields(values, fields)
