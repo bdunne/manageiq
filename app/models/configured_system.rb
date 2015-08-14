@@ -70,4 +70,9 @@ class ConfiguredSystem < ActiveRecord::Base
     hosts.collect(&:available_configuration_profiles).inject(:&).presence
   end
 
+  def to_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :ConfiguredSystem)
+    attrs  = [:id, :name, :configuration_location_name, :configuration_organization_name, :hostname, :operating_system_flavor_name, :provider_name]
+    attrs.each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
 end

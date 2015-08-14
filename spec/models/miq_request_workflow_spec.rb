@@ -232,7 +232,7 @@ describe MiqRequestWorkflow do
     end
 
     it "with a regular class" do
-      hs = workflow.ci_to_hash_struct(FactoryGirl.create(:configured_system))
+      hs = workflow.ci_to_hash_struct(FactoryGirl.create(:configured_system, :configuration_manager => FactoryGirl.create(:configuration_manager)))
 
       expect(hs.id).to               be_kind_of(Integer)
       expect(hs.evm_object_class).to eq(:ConfiguredSystem)

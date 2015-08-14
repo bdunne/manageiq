@@ -23,9 +23,7 @@ class ManageIQ::Providers::Foreman::ConfigurationManager::ProvisionWorkflow < Mi
 
   def allowed_configured_systems(_options = {})
     @allowed_configured_systems ||= begin
-      ::ConfiguredSystem.where(:id => @values[:src_configured_system_ids]).collect do |cs|
-        build_ci_hash_struct(cs, [:configuration_location_name, :configuration_organization_name, :hostname, :operating_system_flavor_name, :provider_name])
-      end
+      ::ConfiguredSystem.where(:id => @values[:src_configured_system_ids]).collect(&:to_hash_struct)
     end
   end
 
