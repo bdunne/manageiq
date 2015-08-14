@@ -987,10 +987,10 @@ class MiqRequestWorkflow
   end
 
   def add_target(dialog_key, key, klass, result)
-    key_id = "#{key}_id".to_sym
+    key_id         = "#{key}_id".to_sym
     result[key_id] = get_value(@values[dialog_key])
     result[key_id] = nil if result[key_id] == 0
-    result[key] = ci_to_hash_struct(klass.where(:id => result[key_id]).first)
+    result[key]    = ci_to_hash_struct(klass.where(:id => result[key_id]).first)
   end
 
   def ci_to_hash_struct(ci)
