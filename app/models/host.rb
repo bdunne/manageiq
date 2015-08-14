@@ -1978,4 +1978,9 @@ class Host < ActiveRecord::Base
     new_hs = MiqHashStruct.new(:evm_object_class => :Host)
     [:id, :name, :vmm_product, :vmm_version, :state, :v_total_vms].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
   end
+
+  def host_provision_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :Host)
+    [:id, :name, :free_space, :total_space].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
 end

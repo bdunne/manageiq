@@ -60,17 +60,12 @@ class MiqHostProvisionWorkflow < MiqRequestWorkflow
   #
 
   def allowed_hosts(options={})
-    return @allowed_hosts_cache unless @allowed_hosts_cache.nil?
+    @allowed_hosts_cache ||= begin
 
-    rails_logger('allowed_hosts', 0)
+      rails_logger('allowed_hosts', 0)
 
-    host_ids = @values[:src_host_ids]
-    hosts = Host.find_all_by_id(host_ids)
-
-    @allowed_hosts_cache  = hosts.collect do |h|
-      build_ci_hash_struct(h, [:name, :guid, :uid_ems, :ipmi_address, :mac_address])
+      Host.where(:id => @values[:src_host_ids]).collect(&:host_provision_hash_struct)
     end
-    return @allowed_hosts_cache
   end
 
   def allowed_ws_hosts(options={})
