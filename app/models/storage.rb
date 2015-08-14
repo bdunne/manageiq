@@ -838,4 +838,9 @@ class Storage < ActiveRecord::Base
     new_hs = MiqHashStruct.new(:evm_object_class => :Storage)
     [:id, :name, :free_space, :total_space, :storage_domain_type].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
   end
+
+  def host_provision_hash_struct
+    new_hs = MiqHashStruct.new(:evm_object_class => :Storage)
+    [:id, :name, :guid, :uid_ems, :ipmi_address, :mac_address].each_with_object(new_hs) { |i, hs| hs.send("#{i}=", send(i)) }
+  end
 end

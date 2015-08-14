@@ -95,14 +95,10 @@ class MiqHostProvisionWorkflow < MiqRequestWorkflow
   end
 
   def allowed_storages(options={})
-    result = []
     ems = ExtManagementSystem.find_by_id(get_value(@values[:placement_ems_name]))
-    return result if ems.nil?
-    ems.storages.each do |s|
-      next unless s.store_type == "NFS"
-      result << build_ci_hash_struct(s, [:name, :free_space, :total_space])
-    end
-    return result
+    return [] if ems.nil?
+
+    ems.storages.collect { |s| s.host_provision_hash_struct if s.store_type == "NFS" }.compact
   end
 
   # This is for summary screen display purposes only
