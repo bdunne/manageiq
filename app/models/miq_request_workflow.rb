@@ -672,12 +672,6 @@ class MiqRequestWorkflow
     :tag_ids
   end
 
-  def build_ci_hash_struct(ci, props)
-    nh = MiqHashStruct.new(:id => ci.id, :evm_object_class => ci.class.base_class.name.to_sym)
-    props.each { |p| nh.send("#{p}=", ci.send(p)) }
-    nh
-  end
-
   def get_dialogs
     @values[:miq_request_dialog_name] ||= @values[:provision_dialog_name] || dialog_name_from_automate || self.class.default_dialog_file
     dp = @values[:miq_request_dialog_name] = File.basename(@values[:miq_request_dialog_name], ".rb")
@@ -1452,6 +1446,7 @@ class MiqRequestWorkflow
   def default_ci_to_hash_struct(ci)
     attributes = []
     attributes << :name if ci.respond_to?(:name)
-    build_ci_hash_struct(ci, attributes)
+    nh = MiqHashStruct.new(:id => ci.id, :evm_object_class => ci.class.base_class.name.to_sym)
+    attributes.each_with_object(nh) { |p, hs| hs.send("#{p}=", ci.send(p)) }
   end
 end
