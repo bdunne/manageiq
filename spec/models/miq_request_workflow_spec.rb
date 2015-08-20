@@ -221,7 +221,7 @@ describe MiqRequestWorkflow do
       end
     end
 
-    it "with an instance of a class that has a special format" do
+    it "with an instance of a class that has a special formatter" do
       hs = workflow.ci_to_hash_struct(FactoryGirl.create(:vm_or_template))
 
       expect(hs.id).to               be_kind_of(Integer)
@@ -231,12 +231,12 @@ describe MiqRequestWorkflow do
       expect(hs.snapshots).to        eq([])
     end
 
-    it "with a regular class" do
-      hs = workflow.ci_to_hash_struct(FactoryGirl.create(:configured_system, :configuration_manager => FactoryGirl.create(:configuration_manager)))
+    it "with an instance of a class that does not have a special formatter" do
+      hs = workflow.ci_to_hash_struct(FactoryGirl.create(:computer_system))
 
       expect(hs.id).to               be_kind_of(Integer)
-      expect(hs.evm_object_class).to eq(:ConfiguredSystem)
-      expect(hs.name).to             be_kind_of(String)
+      expect(hs.evm_object_class).to eq(:ComputerSystem)
+      expect(hs.name).to             be_nil
     end
   end
 end
