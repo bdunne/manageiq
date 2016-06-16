@@ -126,8 +126,8 @@ begin
   DRbObject.send(:undef_method, :inspect)
   DRbObject.send(:undef_method, :id) if DRbObject.respond_to?(:id)
 
-  DRb.start_service("druby://127.0.0.1:0")
-  $evmdrb = DRbObject.new(nil, MIQ_URI)
+  DRb.start_service
+  $evmdrb = DRbObject.new_with_uri(MIQ_URI)
   raise AutomateMethodException,"Cannot create DRbObject for uri=\#{MIQ_URI}" if $evmdrb.nil?
   $evm = $evmdrb.find(MIQ_ID)
   raise AutomateMethodException,"Cannot find Service for id=\#{MIQ_ID} and uri=\#{MIQ_URI}" if $evm.nil?
@@ -179,11 +179,11 @@ RUBY
       end
     end
 
-    def self.run_ruby_method(body, preamble = nil)
+    def self.run_ruby_method(body, preamble = nil, svc_oid)
       ActiveRecord::Base.connection_pool.release_connection
       Bundler.with_clean_env do
         ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-          run_method(Gem.ruby) do |stdin|
+          run_method_in_container(svc_oid) do |stdin|
             stdin.puts(preamble.to_s)
             stdin.puts(body)
             stdin.puts(RUBY_METHOD_POSTSCRIPT) unless preamble.blank?
@@ -227,7 +227,8 @@ RUBY
       require 'drb/timeridconv'
       @global_id_conv = DRb.install_id_conv(DRb::TimerIdConv.new(drb_cache_timeout))
       drb_front  = MiqAeMethodService::MiqAeServiceFront.new
-      drb        = DRb.start_service("druby://127.0.0.1:0", drb_front)
+      socket_file = Tempfile.new("automate_socket", Rails.root.join("tmp"))
+      DRb.start_service("drbunix://#{socket_file}", drb_front)
     end
 
     def self.drb_cache_timeout
@@ -261,7 +262,7 @@ RUBY
           svc.preamble   = method_preamble(DRb.uri, svc.object_id)
           svc.body       = aem.data
           $miq_ae_logger.info("<AEMethod [#{aem.fqname}]> Starting ")
-          rc, msg, stderr = run_ruby_method(svc.body, svc.preamble)
+          rc, msg, stderr = run_ruby_method(svc.body, svc.preamble, svc.object_id)
           $miq_ae_logger.info("<AEMethod [#{aem.fqname}]> Ending")
 
           process_ruby_method_results(rc, msg, stderr)
@@ -308,6 +309,25 @@ RUBY
         cleanup(method_pid, threads)
       end
       return rc, msg, final_stderr.presence
+    end
+
+    def self.run_method_in_container(svc_oid)
+      $log.info "XXXXXXX We're almost here!!!"
+      rc = nil
+      final_stderr = []
+      threads = []
+      method_pid = nil
+      begin
+        socket = DRb.uri.split("drbunix:").last
+        require 'docker-api'
+        c = Docker::Container.create("Image" => "dca94e24a9d3", "Cmd" => ['ruby', "preamble.rb"], "Binds" => ["#{socket}:/drb_socket"], "Env" => ["MIQ_ID=#{svc_oid}"])
+        c.start
+        # Do stuff for stdout and stderr
+        c.wait(600)
+        c.delete
+
+      end
+      return rc, "msg", final_stderr.presence
     end
 
     def self.cleanup(method_pid, threads)

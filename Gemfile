@@ -126,6 +126,7 @@ unless ENV['APPLIANCE']
   end
 end
 
+gem "docker-api", "~>1.28.0", :require => false
 #
 # Custom Gemfile modifications
 #
