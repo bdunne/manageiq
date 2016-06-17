@@ -228,7 +228,7 @@ RUBY
       @global_id_conv = DRb.install_id_conv(DRb::TimerIdConv.new(drb_cache_timeout))
       drb_front  = MiqAeMethodService::MiqAeServiceFront.new
       require 'securerandom'
-      socket_file = Rails.root.join("tmp", "automate_socket#{SecureRandom.uuid}")
+      socket_file = "/tmp/manageiq-automate.sock"
       DRb.start_service("drbunix://#{socket_file}", drb_front)
     end
 
@@ -332,11 +332,10 @@ RUBY
       method_pid = nil
       begin
         $miq_ae_logger.info "XXXXXXX We're almost here!!!"
-        socket = DRb.uri.split("drbunix:").last
         $miq_ae_logger.info "XXXXXXX We're almost here 2"
         require 'docker-api'
         $miq_ae_logger.info "XXXXXXX We're almost here 3"
-        c = Docker::Container.create("Image" => "dca94e24a9d3", "Cmd" => ['ruby', "preamble.rb;", "sleep", "6000"], "Binds" => ["#{socket}:/drb_socket"], "Env" => ["MIQ_ID=#{svc_oid}"])
+        c = Docker::Container.create("Image" => "ecd684aaa8cd", "Cmd" => ['ruby', "preamble.rb"], "Binds" => ["/tmp/manageiq-automate.sock:/tmp/manageiq-automate.sock"], "Env" => ["MIQ_ID=#{svc_oid}"])
         $miq_ae_logger.info "XXXXXXX We're almost here 4"
         c.start
         $miq_ae_logger.info "XXXXXXX We're almost here 5"
