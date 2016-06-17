@@ -227,7 +227,8 @@ RUBY
       require 'drb/timeridconv'
       @global_id_conv = DRb.install_id_conv(DRb::TimerIdConv.new(drb_cache_timeout))
       drb_front  = MiqAeMethodService::MiqAeServiceFront.new
-      socket_file = Tempfile.new("automate_socket", Rails.root.join("tmp"))
+      require 'securerandom'
+      socket_file = Rails.root.join("tmp", "automate_socket#{SecureRandom.uuid}")
       DRb.start_service("drbunix://#{socket_file}", drb_front)
     end
 
@@ -253,19 +254,32 @@ RUBY
     end
 
     def self.invoke_inline_ruby(aem, obj, inputs)
+          $miq_ae_logger.error("XXXXX -1")
       if ruby_method_runnable?(aem)
+          $miq_ae_logger.error("XXXXX 0")
         begin
+          $miq_ae_logger.error("XXXXX 1")
           setup_drb_for_ruby_method if obj.workspace.num_drb_methods == 0
+          $miq_ae_logger.error("XXXXX 2")
           obj.workspace.num_drb_methods += 1
+          $miq_ae_logger.error("XXXXX 3")
           svc            = MiqAeMethodService::MiqAeService.new(obj.workspace)
+          $miq_ae_logger.error("XXXXX 4")
           svc.inputs     = inputs
+          $miq_ae_logger.error("XXXXX 5")
           svc.preamble   = method_preamble(DRb.uri, svc.object_id)
+          $miq_ae_logger.error("XXXXX 6")
           svc.body       = aem.data
+          $miq_ae_logger.error("XXXXX 7")
           $miq_ae_logger.info("<AEMethod [#{aem.fqname}]> Starting ")
+          $miq_ae_logger.error("XXXXX 8")
           rc, msg, stderr = run_ruby_method(svc.body, svc.preamble, svc.object_id)
+          $miq_ae_logger.error("XXXXX 9")
           $miq_ae_logger.info("<AEMethod [#{aem.fqname}]> Ending")
+          $miq_ae_logger.error("XXXXX 10")
 
           process_ruby_method_results(rc, msg, stderr)
+          $miq_ae_logger.error("XXXXX 11")
         ensure
           svc.destroy  # Reset inputs to empty to avoid storing object references
           obj.workspace.num_drb_methods -= 1
@@ -312,19 +326,24 @@ RUBY
     end
 
     def self.run_method_in_container(svc_oid)
-      $log.info "XXXXXXX We're almost here!!!"
       rc = nil
       final_stderr = []
       threads = []
       method_pid = nil
       begin
+        $miq_ae_logger.info "XXXXXXX We're almost here!!!"
         socket = DRb.uri.split("drbunix:").last
+        $miq_ae_logger.info "XXXXXXX We're almost here 2"
         require 'docker-api'
-        c = Docker::Container.create("Image" => "dca94e24a9d3", "Cmd" => ['ruby', "preamble.rb"], "Binds" => ["#{socket}:/drb_socket"], "Env" => ["MIQ_ID=#{svc_oid}"])
+        $miq_ae_logger.info "XXXXXXX We're almost here 3"
+        c = Docker::Container.create("Image" => "dca94e24a9d3", "Cmd" => ['ruby', "preamble.rb;", "sleep", "6000"], "Binds" => ["#{socket}:/drb_socket"], "Env" => ["MIQ_ID=#{svc_oid}"])
+        $miq_ae_logger.info "XXXXXXX We're almost here 4"
         c.start
+        $miq_ae_logger.info "XXXXXXX We're almost here 5"
         # Do stuff for stdout and stderr
         c.wait(600)
-        c.delete
+        $miq_ae_logger.info "XXXXXXX We're almost here 6"
+        # c.delete
 
       end
       return rc, "msg", final_stderr.presence
