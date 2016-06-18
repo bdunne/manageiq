@@ -49,7 +49,22 @@ module MiqAeMethodService
       @preamble_lines        = 0
       @body                  = []
       @persist_state_hash    = ws.persist_state_hash
+      @stdin_read,  @stdin_write  = IO.pipe
+      @stdout_read, @stdout_write = IO.pipe
+      @stderr_read, @stderr_write = IO.pipe
       self.class.add(self)
+    end
+    attr_reader :stdin_read
+    def stdin_write
+      @stdin_write
+    end
+    attr_reader :stdout_read
+    def stdout_write
+      @stdout_write
+    end
+    attr_reader :stderr_read
+    def stderr_write
+      @stderr_write
     end
 
     def destroy

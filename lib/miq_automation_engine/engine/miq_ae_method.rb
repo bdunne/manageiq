@@ -179,15 +179,15 @@ RUBY
       end
     end
 
-    def self.run_ruby_method(body, preamble = nil, svc_oid)
+    def self.run_ruby_method(body, preamble = nil, svc)
       ActiveRecord::Base.connection_pool.release_connection
       Bundler.with_clean_env do
         ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-          run_method_in_container(svc_oid) do |stdin|
-            stdin.puts(preamble.to_s)
-            stdin.puts(body)
-            stdin.puts(RUBY_METHOD_POSTSCRIPT) unless preamble.blank?
-          end
+          run_method_in_container(svc, body)# do |stdin|
+            # stdin.puts(preamble.to_s)
+            # stdin.puts(body)
+            # stdin.puts(RUBY_METHOD_POSTSCRIPT) unless preamble.blank?
+          # end
         end
       end
     end
@@ -228,7 +228,7 @@ RUBY
       @global_id_conv = DRb.install_id_conv(DRb::TimerIdConv.new(drb_cache_timeout))
       drb_front  = MiqAeMethodService::MiqAeServiceFront.new
       require 'securerandom'
-      socket_file = "/tmp/manageiq-automate.sock"
+      socket_file = "/tmp/manageiq-automate-#{SecureRandom.uuid}.sock"
       DRb.start_service("drbunix://#{socket_file}", drb_front)
     end
 
@@ -254,32 +254,19 @@ RUBY
     end
 
     def self.invoke_inline_ruby(aem, obj, inputs)
-          $miq_ae_logger.error("XXXXX -1")
       if ruby_method_runnable?(aem)
-          $miq_ae_logger.error("XXXXX 0")
         begin
-          $miq_ae_logger.error("XXXXX 1")
           setup_drb_for_ruby_method if obj.workspace.num_drb_methods == 0
-          $miq_ae_logger.error("XXXXX 2")
           obj.workspace.num_drb_methods += 1
-          $miq_ae_logger.error("XXXXX 3")
           svc            = MiqAeMethodService::MiqAeService.new(obj.workspace)
-          $miq_ae_logger.error("XXXXX 4")
           svc.inputs     = inputs
-          $miq_ae_logger.error("XXXXX 5")
           svc.preamble   = method_preamble(DRb.uri, svc.object_id)
-          $miq_ae_logger.error("XXXXX 6")
           svc.body       = aem.data
-          $miq_ae_logger.error("XXXXX 7")
           $miq_ae_logger.info("<AEMethod [#{aem.fqname}]> Starting ")
-          $miq_ae_logger.error("XXXXX 8")
-          rc, msg, stderr = run_ruby_method(svc.body, svc.preamble, svc.object_id)
-          $miq_ae_logger.error("XXXXX 9")
+          rc, msg, stderr = run_ruby_method(svc.body, svc.preamble, svc)
           $miq_ae_logger.info("<AEMethod [#{aem.fqname}]> Ending")
-          $miq_ae_logger.error("XXXXX 10")
 
           process_ruby_method_results(rc, msg, stderr)
-          $miq_ae_logger.error("XXXXX 11")
         ensure
           svc.destroy  # Reset inputs to empty to avoid storing object references
           obj.workspace.num_drb_methods -= 1
@@ -325,25 +312,43 @@ RUBY
       return rc, msg, final_stderr.presence
     end
 
-    def self.run_method_in_container(svc_oid)
+    def self.run_method_in_container(svc, body)
       rc = nil
       final_stderr = []
       threads = []
       method_pid = nil
       begin
-        $miq_ae_logger.info "XXXXXXX We're almost here!!!"
-        $miq_ae_logger.info "XXXXXXX We're almost here 2"
+        socket = DRb.uri.split("drbunix:").last
         require 'docker-api'
-        $miq_ae_logger.info "XXXXXXX We're almost here 3"
-        c = Docker::Container.create("Image" => "ecd684aaa8cd", "Cmd" => ['ruby', "preamble.rb"], "Binds" => ["/tmp/manageiq-automate.sock:/tmp/manageiq-automate.sock"], "Env" => ["MIQ_ID=#{svc_oid}"])
-        $miq_ae_logger.info "XXXXXXX We're almost here 4"
+        c = Docker::Container.create(
+          "Image" => "c91a0a69f63d",
+          "Cmd"   => ['ruby', "preamble.rb"],
+          "Binds" => ["#{socket}:#{socket}"],
+          "Env"   => ["MIQ_ID=#{svc.object_id}", "MIQ_DRB_SOCKET=#{socket}"]
+        )
         c.start
-        $miq_ae_logger.info "XXXXXXX We're almost here 5"
-        # Do stuff for stdout and stderr
-        c.wait(600)
-        $miq_ae_logger.info "XXXXXXX We're almost here 6"
-        # c.delete
+        # Do stuff for stdin, stdout and stderr
+        require 'parallel'
+        Parallel.each([:in, :out, :err], in_threads: 3) do |type|
+          if type == :in
+            10.times do
+              svc.stdin_write.puts("HI")
+            end
+          elsif type == :out
+            svc.stdout_read.each_line { |msg| $miq_ae_logger.info "Method STDOUT: #{msg.strip}" }
+          elsif type == :err
+            svc.stderr_read.each_line do |msg|
+              msg = msg.chomp
+              final_stderr << msg
+              $miq_ae_logger.error "Method STDERR: #{msg}"
+            end
+          end
+        end
 
+
+
+        c.wait(600)
+        c.delete
       end
       return rc, "msg", final_stderr.presence
     end
