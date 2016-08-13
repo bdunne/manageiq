@@ -1,4 +1,5 @@
-require_relative '../bundler_setup'
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+require 'manageiq/gems/pending'
 require 'vcr'
 
 if ENV["TRAVIS"]

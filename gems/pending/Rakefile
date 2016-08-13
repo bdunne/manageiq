@@ -1,6 +1,6 @@
-require_relative './bundler_setup'
+require 'bundler/gem_tasks'
 
-Dir[File.join(GEMS_PENDING_ROOT, "lib/tasks/**/*.rake")].sort.each { |ext| load ext }
+Dir["lib/tasks/**/*.rake"].sort.each { |ext| load ext }
 
 task :default do
   Rake::Task["spec"].invoke
