@@ -31,10 +31,14 @@ module Vmdb
       location = location.first if location.kind_of?(Array)
       meth = location.base_label
       meth = meth ? "#{klass}#{separator}#{meth}" : klass
-      "MIQ(#{meth})"
+      "#{hostname}MIQ(#{meth})"
     end
 
     private
+
+    def hostname
+      @hostname ||= (ENV["CONTAINER"] && ENV["HOSTNAME"]) ? "#{ENV["HOSTNAME"]} " : ""
+    end
 
     def logger
       Vmdb.logger
