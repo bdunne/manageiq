@@ -58,7 +58,7 @@ module ManageIQ
     def self.install_bundler(root = APP_ROOT)
       system!("echo 'gem: --no-ri --no-rdoc --no-document' > ~/.gemrc") if ENV['CI']
       system!("gem install bundler -v '#{bundler_version}' --conservative")
-      system!("bundle config path #{root.join('vendor/bundle').expand_path}", :chdir => root) if ENV["CI"]
+      # system!("bundle config path #{root.join('vendor/bundle').expand_path}", :chdir => root) if ENV["CI"]
     end
 
     def self.bundle_update(root = APP_ROOT)
