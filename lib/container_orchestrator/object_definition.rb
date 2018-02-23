@@ -27,6 +27,45 @@ class ContainerOrchestrator
       }
     end
 
+    def persistent_volume_claim_definition(name, size)
+      {
+        :metadata => {
+          :name      => name,
+          :labels    => {:app => app_name},
+          :namespace => my_namespace,
+        },
+        :spec => {
+          :accessModes => ["ReadWriteOnce"],
+          :resources   => {
+            :requests => {
+              :storage => size
+            }
+          }
+        }
+      }
+    end
+
+    def route_definition(name)
+      {
+        :metadata => {
+          :name      => name,
+          :labels    => {:app => app_name},
+          :namespace => my_namespace,
+        },
+        :spec     => {
+          :port => {:targetPort => "https"},
+          :tls  => {
+            :insecureEdgeTerminationPolicy => "Redirect",
+            :termination => "edge",
+          },
+          :to => {
+            :kind => "Service",
+            :name => name
+          }
+        }
+      }
+    end
+
     def service_definition(name, port)
       {
         :metadata => {

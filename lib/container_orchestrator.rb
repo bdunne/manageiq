@@ -22,6 +22,22 @@ class ContainerOrchestrator
     raise unless e.message =~ /already exists/
   end
 
+  def create_persistent_volume_claim(name, size)
+    definition = persistent_volume_claim_definition(name, size)
+    yield(definition) if block_given?
+    kube_connection.create_persistent_volume_claim(definition)
+  rescue KubeException => e
+    raise unless e.message =~ /already exists/
+  end
+
+  def create_route(name)
+    definition = route_definition(name)
+    yield(definition) if block_given?
+    connection.create_route(definition)
+  rescue KubeException => e
+    raise unless e.message =~ /already exists/
+  end
+
   def create_service(name, port)
     definition = service_definition(name, port)
     yield(definition) if block_given?

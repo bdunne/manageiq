@@ -141,6 +141,11 @@
     :image_name: manageiq/embedded-ansible
     :image_tag: latest
     :service_account: miq-privileged
+:embedded_pulp:
+  :container:
+    :image_name: bdunne/pulp
+    :image_tag: latest
+    :service_account: miq-httpd
 :ems:
 # provider specific settings are nested here, but they are in the provider repos
 # e.g.:
@@ -1110,6 +1115,10 @@
       :starting_timeout: 10.minutes
       :stopping_timeout: 10.minutes
     :embedded_ansible_worker:
+      :starting_timeout: 20.minutes
+      :poll: 10.seconds
+      :memory_threshold: 0.megabytes
+    :embedded_pulp_worker:
       :starting_timeout: 20.minutes
       :poll: 10.seconds
       :memory_threshold: 0.megabytes
