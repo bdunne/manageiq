@@ -30,7 +30,7 @@ class ContainerOrchestrator
     def persistent_volume_claim_definition(name, size)
       {
         :metadata => {
-          :name      => name,
+          :name      => "#{name}-volume",
           :labels    => {:app => app_name},
           :namespace => my_namespace,
         },

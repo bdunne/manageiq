@@ -7,8 +7,8 @@ class ContainerEmbeddedPulp < EmbeddedPulp
   end
 
   def start
-    create_pulp_pvc
     create_pulp_service
+    create_pulp_persistent_volume_claim
     create_pulp_deployment_config
     create_pulp_route
 
@@ -44,19 +44,8 @@ class ContainerEmbeddedPulp < EmbeddedPulp
     end
   end
 
-  def create_pulp_pvc
-    orchestrator.create_persistent_volume_claim(PULP_SERVICE_NAME, "10Gi")
-  end  
-
   def create_pulp_service
-    orchestrator.create_service(PULP_SERVICE_NAME, 443) do |service|
-      http_port = {
-        :name       => "#{PULP_SERVICE_NAME}-443",
-        :port       => 443,
-        :targetPort => 443
-      }
-      service[:spec][:ports] << http_port
-    end
+    orchestrator.create_service(PULP_SERVICE_NAME, 443)
   end
 
   def create_pulp_deployment_config
@@ -76,6 +65,10 @@ class ContainerEmbeddedPulp < EmbeddedPulp
       container[:image]          = image
       container[:volumeMounts]   = [{:name => "#{PULP_SERVICE_NAME}-volume", :mountPath => "/pv"}]
     end
+  end
+
+  def create_pulp_persistent_volume_claim
+    orchestrator.create_persistent_volume_claim(PULP_SERVICE_NAME, "10Gi")
   end
 
   def readiness_probe
