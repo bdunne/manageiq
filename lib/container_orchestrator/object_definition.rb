@@ -53,7 +53,7 @@ class ContainerOrchestrator
           :namespace => my_namespace,
         },
         :spec     => {
-          :port => {:targetPort => "https"},
+          :port => {:targetPort => "#{name}-443"},
           :tls  => {
             :insecureEdgeTerminationPolicy => "Redirect",
             :termination => "edge",
