@@ -73,8 +73,8 @@ class ContainerEmbeddedPulp < EmbeddedPulp
 
   def readiness_probe
     {
-      :httpGet             => {:path => "/", :port => 443, :scheme => "HTTPS"},
-      :initialDelaySeconds => 20,
+      :tcpSocket           => {:port => 443},
+      :initialDelaySeconds => 200,
       :timeoutSeconds      => 3
     }
   end
