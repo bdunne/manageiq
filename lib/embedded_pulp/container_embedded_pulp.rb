@@ -56,7 +56,7 @@ class ContainerEmbeddedPulp < EmbeddedPulp
       dc[:spec][:template][:spec][:serviceAccount]     = settings.service_account
       dc[:spec][:template][:spec][:serviceAccountName] = settings.service_account
 
-      dc.store_path(:spec, :volumes, [{:name => "#{PULP_SERVICE_NAME}-volume", :persistentVolumeClaim => {:claimName => PULP_SERVICE_NAME}}])
+      dc.store_path(:spec, :template, :spec, :volumes, [{:name => "#{PULP_SERVICE_NAME}-volume", :persistentVolumeClaim => {:claimName => "#{PULP_SERVICE_NAME}-volume"}}])
 
       container = dc[:spec][:template][:spec][:containers].first
       container.delete(:livenessProbe)
