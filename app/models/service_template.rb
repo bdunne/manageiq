@@ -74,6 +74,11 @@ class ServiceTemplate < ApplicationRecord
   scope :with_existent_service_template_catalog_id, ->         { where.not(:service_template_catalog_id => nil) }
   scope :displayed,                                 ->         { where(:display => true) }
 
+  def miq_schedules
+    #HACK: This should become a real relation
+    Reserve.where(:resource_type => "MiqSchedule").collect { |r| r.resource if r.reserved == {:resource_id => id} }.compact
+  end
+
   def self.catalog_item_types
     ci_types = Set.new(Rbac.filtered(ExtManagementSystem.all).flat_map(&:supported_catalog_types))
     ci_types.add('generic_orchestration') if Rbac.filtered(OrchestrationTemplate).exists?
