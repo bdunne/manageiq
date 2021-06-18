@@ -32,9 +32,20 @@ module Vmdb
 
     def self.create_logger(log_file_name, logger_class = VMDBLogger)
       log_file = ManageIQ.root.join("log", log_file_name)
+      progname = File.basename(log_file_name, ".*")
+
       logger_class.new(log_file).tap do |logger|
-        logger.extend(ActiveSupport::Logger.broadcast($container_log)) if $container_log
-        logger.extend(ActiveSupport::Logger.broadcast($journald_log))  if $journald_log
+        if $container_log
+          create_container_logger.tap do |l|
+            logger.extend(ActiveSupport::Logger.broadcast(l))
+            l.progname = progname
+          end
+        elsif $journald_log
+          create_journald_logger.tap do |l|
+            logger.extend(ActiveSupport::Logger.broadcast(l))
+            l.progname = progname
+          end
+        end
       end
     end
 
