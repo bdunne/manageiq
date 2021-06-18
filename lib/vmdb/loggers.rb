@@ -21,7 +21,6 @@ module Vmdb
 
     def self.apply_config(config)
       apply_config_value(config, $log,                :level)
-      apply_config_value(config, $journald_log,       :level) if $journald_log
       apply_config_value(config, $audit_log,          :level_audit)
       apply_config_value(config, $rails_log,          :level_rails)
       apply_config_value(config, $policy_log,         :level_policy)
@@ -35,23 +34,18 @@ module Vmdb
       progname = File.basename(log_file_name, ".*")
 
       logger_class.new(log_file).tap do |logger|
-        if $container_log
-          create_container_logger.tap do |l|
-            logger.extend(ActiveSupport::Logger.broadcast(l))
-            l.progname = progname
-          end
-        elsif $journald_log
-          create_journald_logger.tap do |l|
-            logger.extend(ActiveSupport::Logger.broadcast(l))
-            l.progname = progname
-          end
+        create_container_logger do |l|
+          logger.extend(ActiveSupport::Logger.broadcast(l))
+          l.progname = progname
+        end
+        create_journald_logger do |l|
+          logger.extend(ActiveSupport::Logger.broadcast(l))
+          l.progname = progname
         end
       end
     end
 
     private_class_method def self.create_loggers
-      $container_log      = create_container_logger
-      $journald_log       = create_journald_logger
       $log                = create_logger("evm.log")
       $rails_log          = create_logger("#{Rails.env}.log")
       $audit_log          = create_logger("audit.log", AuditLogger)
@@ -65,14 +59,14 @@ module Vmdb
       return unless ENV["CONTAINER"]
 
       require "manageiq/loggers/container"
-      ManageIQ::Loggers::Container.new
+      ManageIQ::Loggers::Container.new.tap { |l| yield l if block_given? }
     end
 
     private_class_method def self.create_journald_logger
       return unless MiqEnvironment::Command.supports_systemd?
 
       require "manageiq/loggers/journald"
-      ManageIQ::Loggers::Journald.new
+      ManageIQ::Loggers::Journald.new.tap { |l| yield l if block_given? }
     rescue LoadError
       nil
     end
