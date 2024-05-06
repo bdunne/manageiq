@@ -75,6 +75,7 @@ gem "rake",                             ">=12.3.3",          :require => false
 gem "rest-client",                      "~>2.1.0",           :require => false
 gem "ruby_parser",                                           :require => false # Required for i18n string extraction, and DescentdantLoader (via prism)
 gem "ruby-progressbar",                 "~>1.7.0",           :require => false
+gem "ruby_parser",                                           :require => false
 gem "rubyzip",                          "~>2.0.0",           :require => false
 gem "rugged",                           "~>1.5.0",           :require => false
 gem "ruport",                           "~>1.8.0"
